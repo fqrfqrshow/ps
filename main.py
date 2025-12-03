@@ -1,58 +1,83 @@
 ﻿# -*- coding: utf-8 -*-
-"""Основная программа для анализа планет."""
+"""Основная программа анализа планет."""
 
-from model import parse_planet, parse_habitable_planet, parse_mining_planet, InvalidPlanetDataError
-from view import display_planet
-
+from model import Planet, parse_planet
 
 
-
-
-def process_line(line):
-    """Обрабатывает строку с описанием планеты."""
-    line = line.strip()
-    if not line or line.startswith('#'):
-        return None
-    
-    try:
-        # Пробуем парсить как обитаемую планету
-        try:
-            return parse_habitable_planet(line)
-        except InvalidPlanetDataError:
-            pass
-        
-        # Пробуем парсить как горнодобывающую планету
-        try:
-            return parse_mining_planet(line)
-        except InvalidPlanetDataError:
-            pass
-        
-        # Пробуем парсить как обычную планету
-        try:
-            return parse_planet(line)
-        except InvalidPlanetDataError:
-            pass
-        
-        print(f"Не удалось определить тип планеты для строки: {line}")
-        return None
-        
-    except Exception as e:
-        print(f"Ошибка при обработке строки '{line}': {e}")
-        return None
-
-
-def main():
-    """Основная функция программы."""
+def load_planets():
+    """Загружает планеты из файла."""
+    planets = []
     try:
         with open("planets.txt", "r", encoding="utf-8") as f:
             for line in f:
-                planet = process_line(line)
-                if planet:
-                    display_planet(planet)
+                if line.strip() and not line.startswith('#'):
+                    planet = parse_planet(line)
+                    if planet:
+                        planets.append(planet)
     except FileNotFoundError:
-        print("Ошибка: Файл planets.txt не найден.")
-    except Exception as e:
-        print(f"Критическая ошибка: {e}")
+        print("Файл planets.txt не найден")
+    return planets
+
+
+def save_planets(planets):
+    """Сохраняет планеты в файл."""
+    with open("planets.txt", "w", encoding="utf-8") as f:
+        for planet in planets:
+            f.write(f'"{planet.name}" {planet.date} {planet.radius} {planet.mass}\n')
+
+
+def show_all(planets):
+    """Показывает все планеты."""
+    if not planets:
+        print("Список планет пуст")
+    else:
+        for i, planet in enumerate(planets, 1):
+            print(f"{i}. ", end="")
+            planet.display()
+
+
+def add_planet(planets):
+    """Добавляет новую планету."""
+    name = input("Название планеты: ").strip()
+    date = input("Дата открытия (ГГГГ.ММ.ДД): ").strip()
+    
+    try:
+        radius = float(input("Радиус (км): "))
+        mass = float(input("Масса (кг): "))
+    except ValueError:
+        print("Ошибка: радиус и масса должны быть числами")
+        return planets
+    
+    planets.append(Planet(name, date, radius, mass))
+    print(f"Планета '{name}' добавлена")
+    return planets
+
+
+def main():
+    """Главное меню программы."""
+    planets = load_planets()
+    
+    while True:
+        print("\n" + "="*30)
+        print("АНАЛИЗ ПЛАНЕТ")
+        print("="*30)
+        print("1. Вывести все планеты")
+        print("2. Добавить планету")
+        print("3. Выход")
+        print("="*30)
+        
+        choice = input("Выберите действие: ").strip()
+        
+        if choice == "1":
+            show_all(planets)
+        elif choice == "2":
+            planets = add_planet(planets)
+            save_planets(planets)
+        elif choice == "3":
+            print("Выход из программы")
+            break
+        else:
+            print("Неверный выбор")
 
 
 if __name__ == "__main__":
