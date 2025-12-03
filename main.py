@@ -5,6 +5,9 @@ from model import parse_planet, parse_habitable_planet, parse_mining_planet, Inv
 from view import display_planet
 
 
+
+
+
 def process_line(line):
     """Обрабатывает строку с описанием планеты."""
     line = line.strip()
